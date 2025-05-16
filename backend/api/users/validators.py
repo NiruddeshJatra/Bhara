@@ -1,0 +1,61 @@
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password
+import string
+import re
+from datetime import datetime
+
+
+def validate_password_strength(password):
+    validate_password(password)
+    if len(password) < 8:
+        raise ValidationError("Password must be at least 8 characters long.")
+    if not any(char.isupper() for char in password):
+        raise ValidationError("Password must contain at least one uppercase letter.")
+    if not any(char.islower() for char in password):
+        raise ValidationError("Password must contain at least one lowercase letter.")
+    if not any(char.isdigit() for char in password):
+        raise ValidationError("Password must contain at least one digit.")
+    if not any(char in string.punctuation for char in password):
+        raise ValidationError("Password must contain at least one special character.")
+    return password
+  
+def validate_phone_number(phone_number):
+  pattern = r'^(\+?88)?01[3-9]\d{8}$'
+  if not re.match(pattern, phone_number):
+    raise ValidationError("Invalid phone number. Please enter a valid Bangladeshi phone number.")
+  return phone_number
+
+def validate_national_id(national_id):
+  pattern = r'^[0-9]{10}$'
+  if not re.match(pattern, national_id):
+    raise ValidationError("Invalid national ID. Please enter a valid Bangladeshi national ID.")
+  return national_id
+
+def validate_email(email): 
+  if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email):
+    raise ValidationError("Invalid email address.")
+  return email
+
+def validate_username(username):
+  if not re.match(r'^[a-zA-Z0-9_]+$', username):
+    raise ValidationError("Username can only contain letters, numbers, and underscores.")
+  return username
+
+def validate_date_of_birth(date_of_birth):
+  if date_of_birth > datetime.now().date():
+    raise ValidationError("Date of birth cannot be in the future.")
+  if date_of_birth < datetime(1900, 1, 1).date():
+    raise ValidationError("Date of birth cannot be before 1900-01-01.")
+  if date_of_birth > datetime(2005, 1, 1).date():
+    raise ValidationError("You must be at least 18 years old to register.")
+  return date_of_birth
+
+def validate_image_file(image_file):
+  if image_file.type not in ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']:
+    raise ValidationError("Invalid image file. Please upload a valid image file.")
+  if image_file.size > 10 * 1024 * 1024:
+    raise ValidationError("Image file cannot be larger than 10MB.")
+  return image_file
+
+
+
