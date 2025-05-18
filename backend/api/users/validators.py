@@ -1,6 +1,5 @@
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.password_validation import validate_password
-from .models import User
 import string
 import re
 from datetime import datetime
@@ -77,6 +76,8 @@ def validate_image_file(image_file):
 
 
 def validate_signup_data(data):
+    from .models import User
+    
     errors = {}
 
     # Check uniqueness
