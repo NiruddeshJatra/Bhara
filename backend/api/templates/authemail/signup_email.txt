@@ -1,0 +1,12 @@
+Hello{% if first_name %} {{ first_name }}{% endif %},
+
+Thank you for signing up with Vara! To complete your registration and verify your email address, please click on the link below:
+
+http://localhost:3000/verify-email?code={{ code }}
+
+This link will expire in 24 hours.
+
+If you did not sign up for a Vara account, please ignore this email.
+
+Best regards,
+The Bhara Team

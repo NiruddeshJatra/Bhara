@@ -66,7 +66,7 @@ def validate_date_of_birth(date_of_birth):
 
 
 def validate_image_file(image_file):
-    if image_file.type not in ["image/jpeg", "image/png", "image/jpg", "image/webp"]:
+    if image_file.content_type not in ["image/jpeg", "image/png", "image/jpg", "image/webp"]:
         raise ValidationError(
             _("Invalid image file. Please upload a valid image file.")
         )
