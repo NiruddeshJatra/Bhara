@@ -2,6 +2,8 @@ from celery import shared_task
 from authemail.models import SignupCode, PasswordResetCode
 from django.core.mail import send_mail
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
 import logging
 import traceback
 
@@ -33,33 +35,35 @@ def send_verification_email(user_id, code):
             return
         
         # Build verification URLs - these can be configured in settings
-        backend_url = getattr(settings, 'BACKEND_URL', 'http://localhost:8000')
         frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
+        verification_url = f"{frontend_url}/verify-email?code={code}"
         
-        # For testing with Postman, use the backend verification URL
-        backend_verification_url = f"{backend_url}/auth/signup/verify/?code={code}"
+        # Prepare context for templates
+        context = {
+            'user': signup_code.user,
+            'verification_url': verification_url,
+            'frontend_url': frontend_url,
+            'code': code
+        }
         
-        # For production, this would be the frontend URL
-        frontend_verification_url = f"{frontend_url}/verify-email?code={code}"
+        # Render email content from templates
+        subject = render_to_string('authemail/signup_email_subject.txt', context).strip()
+        text_content = render_to_string('authemail/signup_email.txt', context)
+        html_content = render_to_string('authemail/signup_email.html', context)
         
-        # For testing purposes, use the backend URL that works with Postman
-        verification_url = backend_verification_url
-        
-        logger.info(f"Sending email to {signup_code.user.email}")
-        send_mail(
-            subject='Verify Your Email Address - Bhara',
-            message=f'Hello {signup_code.user.first_name},\n\n'
-                    f'Thank you for signing up with Bhara! To complete your registration and verify your email address, please click on the link below:\n\n'
-                    f'{verification_url}\n\n'
-                    f'This link will expire in 24 hours.\n\n'
-                    f'If you did not sign up for a Bhara account, please ignore this email.\n\n'
-                    f'Best regards,\n'
-                    f'The Bhara Team',
+        # Create email message
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[signup_code.user.email],
-            fail_silently=False,
+            to=[signup_code.user.email]
         )
+        email.attach_alternative(html_content, "text/html")
+        
+        # Send email
+        email.send(fail_silently=False)
         logger.info(f"SUCCESS: Verification email sent to {signup_code.user.email}")
+        
     except SignupCode.DoesNotExist:
         logger.error(f"Signup code not found for code: {code}")
     except Exception as e:
@@ -69,33 +73,56 @@ def send_verification_email(user_id, code):
 
 @shared_task
 def send_password_reset_email(code):
+    """
+    Send password reset email to user with the given code.
+    
+    Args:
+        code: PasswordResetCode primary key
+    """
+    logger.info(f"TASK RECEIVED: Attempting to send password reset email for code={code}")
+    
     try:
         if not code:
-            print("Warning: No code provided")
+            logger.warning("Missing required parameter: code")
             return
         
+        logger.info(f"Looking up PasswordResetCode with code={code}")
         password_reset_code = PasswordResetCode.objects.get(code=code)
-        send_mail(
-            subject='Reset Your Password - Bhara',
-            message=f'Hello {password_reset_code.user.first_name},\n\n'
-                    f'You have requested to reset your password. To reset your password, please click on the link below:\n\n'
-                    f'http://localhost:3000/reset-password?code={code}\n\n'
-                    f'This link will expire in 24 hours.\n\n'
-                    f'If you did not request a password reset, please ignore this email.\n\n'
-                    f'Best regards,\n'
-                    f'The Bhara Team',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[password_reset_code.user.email],
-            fail_silently=False,
-        )
-        print(f"Successfully sent password reset email for code: {code}")
-    except PasswordResetCode.DoesNotExist:
-        print(f"Password reset code not found for code: {code}")
-    except Exception as e:
-        print(f"Failed to send password reset email for code: {code}. Error: {str(e)}")
         
-{
-    "token": "948db55716f83386e9e0f49e87c29d40fa811074",
-    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTc0ODUxNjQ1OSwiaWF0IjoxNzQ4MjU3MjU5LCJqdGkiOiJmZTU4MGE2ZGEzMTA0ZjAyODAxYWQxYThiMmY0ZTg2NiIsInVzZXJfaWQiOiI1YTI2ZTA5MS1jZDQ0LTRkY2ItYmU1ZS0wNGUxYTNkODg1YmYifQ.t5ObmWMWrFTZyA4zZAhy-wtA_90XjyzYlWoIH4XRqBc",
-    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4MjYwODU5LCJpYXQiOjE3NDgyNTcyNTksImp0aSI6IjlkOTJjNTQzODRmMDRkOTY5YTMwZGM0ZmVkZTE0MTk2IiwidXNlcl9pZCI6IjVhMjZlMDkxLWNkNDQtNGRjYi1iZTVlLTA0ZTFhM2Q4ODViZiJ9.OCUj0G01aKDDTcbo6FXJ2N8kMq5LK1NhmEwdMFq2wA4"
-}
+        # Build reset URL - this can be configured in settings
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:3000')
+        reset_url = f"{frontend_url}/reset-password?code={code}"
+        
+        # Prepare context for templates
+        context = {
+            'user': password_reset_code.user,
+            'reset_url': reset_url,
+            'frontend_url': frontend_url,
+            'code': code
+        }
+        
+        # Render email content from templates
+        subject = render_to_string('authemail/password_reset_email_subject.txt', context).strip()
+        text_content = render_to_string('authemail/password_reset_email.txt', context)
+        html_content = render_to_string('authemail/password_reset_email.html', context)
+        
+        # Create email message
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[password_reset_code.user.email]
+        )
+        email.attach_alternative(html_content, "text/html")
+        
+        # Send email
+        email.send(fail_silently=False)
+        logger.info(f"SUCCESS: Password reset email sent to {password_reset_code.user.email}")
+        
+    except PasswordResetCode.DoesNotExist:
+        logger.error(f"Password reset code not found for code: {code}")
+    except Exception as e:
+        logger.error(f"Error sending password reset email: {str(e)}")
+        logger.error(traceback.format_exc())
+        print(f"ERROR: Failed to send password reset email. Error: {str(e)}")
+        

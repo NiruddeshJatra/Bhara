@@ -1,6 +1,6 @@
-Hello{% if first_name %} {{ first_name }}{% endif %},
+Hello {{ user.username }},
 
-Thank you for signing up with Vara! To complete your registration and verify your email address, please click on the link below:
+Thank you for signing up with Bhara! To complete your registration and verify your email address, please click on the link below:
 
 http://localhost:3000/verify-email?code={{ code }}
 

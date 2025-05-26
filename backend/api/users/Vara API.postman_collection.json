@@ -96,6 +96,99 @@
 						"description": "Login with email and password"
 					},
 					"response": []
+				},
+				{
+					"name": "Request Password Reset",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/password/reset/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "password", "reset", ""]
+						},
+						"description": "Request a password reset email"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Password Reset Code",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/password/reset/verify/?code={{reset_code}}",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "password", "reset", "verify", ""],
+							"query": [
+								{
+									"key": "code",
+									"value": "{{reset_code}}"
+								}
+							]
+						},
+						"description": "Verify password reset code"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"{{reset_code}}\",\n  \"password\": \"NewSecurePassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/password/reset/verified/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "password", "reset", "verified", ""]
+						},
+						"description": "Reset password with code and new password"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"NewSecurePassword123!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/password/change/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "password", "change", ""]
+						},
+						"description": "Change password when logged in"
+					},
+					"response": []
 				}
 			],
 			"description": "Authentication related endpoints"
