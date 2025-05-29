@@ -43,12 +43,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "average_rating",
             "is_trusted",
         ]
-        
+
     def get_member_since(self, obj):
-        return obj.created_at.strftime('%B %Y')
-      
+        return obj.created_at.strftime("%B %Y")
+
     def get_full_name(self, obj):
-      return f"{obj.first_name} {obj.last_name}".strip()
+        return f"{obj.first_name} {obj.last_name}".strip()
 
 
 class ProfileCompletionSerializer(serializers.ModelSerializer):
@@ -71,12 +71,12 @@ class ProfileCompletionSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         return validate_profile_completion_data(data)
-      
+
     def update(self, instance, validate_data):
         for attr, value in validate_data.items():
             setattr(instance, attr, value)
-            
+
         instance.profile_completed = True
         instance.save()
-        
+
         return instance

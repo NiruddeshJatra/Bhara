@@ -9,7 +9,7 @@ def validate_product_images(images):
     - Requires at least one image
     - Maximum 10 images
     - Each image must be < 5MB
-    - Only allows jpeg, png, gif formats
+    - Only allows jpeg, jpg, png, gif formats
     """
     if len(images) < 1:
         raise ValidationError(_("At least one image is required."))
@@ -18,7 +18,7 @@ def validate_product_images(images):
     for image in images:
         if image.size > 1024 * 1024 * 5:
             raise ValidationError(_("Image size must be less than 5MB."))
-        if image.content_type not in ["image/jpeg", "image/png", "image/gif"]:
+        if image.content_type not in ["image/jpeg", "image/jpg", "image/png", "image/gif"]:
             raise ValidationError(_("Invalid image format."))
     return images
 
