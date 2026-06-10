@@ -15,7 +15,7 @@ CATEGORY_CHOICES = [
 ]
 
 # Product types mapped to their categories (using database values)
-PRODUCT_TYPE_CHOICES = [
+RAW_PRODUCT_TYPE_CHOICES = [
     # Photography & Videography
     ("camera", "photography_videography"),
     ("lens", "photography_videography"),
@@ -24,7 +24,7 @@ PRODUCT_TYPE_CHOICES = [
     ("drone", "photography_videography"),
     ("lighting", "photography_videography"),
     ("video_camera", "photography_videography"),
-    ("microphone", "photography_videography"),
+    ("microphone_photo", "photography_videography"),
     ("stabilizer", "photography_videography"),
     ("slider", "photography_videography"),
     ("reflector", "photography_videography"),
@@ -52,7 +52,7 @@ PRODUCT_TYPE_CHOICES = [
     ("poncho", "camping_hiking"),
     ("jacket", "camping_hiking"),
     ("sleeping_bag", "camping_hiking"),
-    ("tent", "camping_hiking"),
+    ("tent_camping", "camping_hiking"),
     ("stove", "camping_hiking"),
     ("water_bottle", "camping_hiking"),
     ("hiking_pole", "camping_hiking"),
@@ -69,8 +69,8 @@ PRODUCT_TYPE_CHOICES = [
     ("chair", "event_party"),
     ("table", "event_party"),
     ("stage_light", "event_party"),
-    ("projector", "event_party"),
-    ("tent", "event_party"),
+    ("projector_event", "event_party"),
+    ("tent_event", "event_party"),
     # Fashion & Accessories
     ("formal_wear", "fashion_accessories"),
     ("jewelry", "fashion_accessories"),
@@ -81,7 +81,7 @@ PRODUCT_TYPE_CHOICES = [
     ("laptop", "electronics"),
     ("tablet", "electronics"),
     ("smartphone", "electronics"),
-    ("projector", "electronics"),
+    ("projector_electronics", "electronics"),
     ("speaker", "electronics"),
     ("tv", "electronics"),
     ("printer", "electronics"),
@@ -99,7 +99,7 @@ PRODUCT_TYPE_CHOICES = [
     ("keyboard", "musical_instruments"),
     ("harmonium", "musical_instruments"),
     ("tabla", "musical_instruments"),
-    ("microphone", "musical_instruments"),
+    ("microphone_musical", "musical_instruments"),
     ("amplifier", "musical_instruments"),
     ("drum", "musical_instruments"),
     ("violin", "musical_instruments"),
@@ -199,6 +199,11 @@ PRODUCT_TYPE_DISPLAY = {
     "other": _("Other"),
 }
 
+PRODUCT_TYPE_CHOICES = [
+    (key, PRODUCT_TYPE_DISPLAY[key])
+    for key, _ in RAW_PRODUCT_TYPE_CHOICES
+]
+
 DURATION_UNITS = [
     ("day", _("Per Day")),
     ("week", _("Per Week")),
@@ -213,6 +218,7 @@ OWNERSHIP_HISTORY_CHOICES = [
 STATUS_CHOICES = [
     ("draft", _("Draft - Pending Review")),
     ("active", _("Active - Available for Rent")),
+    ("rented", _("Rented - Currently Rented")),
     ("maintenance", _("Under Maintenance - Needs Action")),
     ("suspended", _("Suspended - Listing Disabled")),
 ]

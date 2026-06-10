@@ -4,6 +4,7 @@ import string
 import re
 from datetime import datetime
 from django.utils.translation import gettext as _
+from dateutil.relativedelta import relativedelta
 
 
 def validate_password_strength(password):
@@ -60,7 +61,7 @@ def validate_date_of_birth(date_of_birth):
         raise ValidationError(_("Date of birth cannot be in the future."))
     if date_of_birth < datetime(1900, 1, 1).date():
         raise ValidationError(_("Date of birth cannot be before 1900-01-01."))
-    if date_of_birth > datetime(2005, 1, 1).date():
+    if date_of_birth > (datetime.now() - relativedelta(years=18)).date():
         raise ValidationError(_("You must be at least 18 years old to register."))
     return date_of_birth
 
@@ -92,21 +93,21 @@ def validate_signup_data(data):
     if User.objects.filter(email=data.get("email")).exists():
         errors["email"] = _("Email is already registered.")
 
-        # Validate field formats
-        try:
-            validate_email(data.get("email"))
-        except ValidationError as e:
-            errors["email"] = e.message
+    # Validate field formats
+    try:
+        validate_email(data.get("email"))
+    except ValidationError as e:
+        errors["email"] = e.message
 
-        try:
-            validate_username(data.get("username"))
-        except ValidationError as e:
-            errors["username"] = e.message
+    try:
+        validate_username(data.get("username"))
+    except ValidationError as e:
+        errors["username"] = e.message
 
-        try:
-            validate_password(data.get("password"))
-        except ValidationError as e:
-            errors["password"] = e.message
+    try:
+        validate_password(data.get("password"))
+    except ValidationError as e:
+        errors["password"] = e.message
 
     if errors:
         raise ValidationError(errors)

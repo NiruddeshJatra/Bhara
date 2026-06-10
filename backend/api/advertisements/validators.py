@@ -3,26 +3,6 @@ from django.utils.translation import gettext as _
 from django.utils import timezone
 
 
-def validate_product_images(images):
-    """
-    Validates product images.
-    - Requires at least one image
-    - Maximum 10 images
-    - Each image must be < 5MB
-    - Only allows jpeg, jpg, png, gif formats
-    """
-    if len(images) < 1:
-        raise ValidationError(_("At least one image is required."))
-    if len(images) > 10:
-        raise ValidationError(_("Maximum of 10 images allowed."))
-    for image in images:
-        if image.size > 1024 * 1024 * 5:
-            raise ValidationError(_("Image size must be less than 5MB."))
-        if image.content_type not in ["image/jpeg", "image/jpg", "image/png", "image/gif"]:
-            raise ValidationError(_("Invalid image format."))
-    return images
-
-
 def validate_pricing_tier(data):
     """
     Validates a single pricing tier.
@@ -88,6 +68,12 @@ def validate_product_details(data):
     Validates product details.
     - Purchase year cannot be in the future
     """
-    if data.get("purchase_year") and data["purchase_year"] > timezone.now().date():
-        raise ValidationError(_("Purchase year cannot be in the future."))
+    if data.get("purchase_year"):
+        try:
+            purchase_year = int(data["purchase_year"])
+        except (ValueError, TypeError):
+            raise ValidationError(_("Purchase year must be a valid year."))
+        current_year = timezone.now().year
+        if purchase_year > current_year:
+            raise ValidationError(_("Purchase year cannot be in the future."))
     return data

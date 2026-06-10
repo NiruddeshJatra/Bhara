@@ -4,6 +4,9 @@ from .constants import *
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.conf import settings
+from imagekit.models import ImageSpecField
+from imagekit.processors import ResizeToFill
+from django.db.models import Avg
 
 
 class ProductImage(models.Model):
@@ -17,6 +20,27 @@ class ProductImage(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    thumbnail = ImageSpecField(
+        source='image',
+        processors=[ResizeToFill(150, 150)],
+        format='JPEG',
+        options={'quality': 80}
+    )
+    
+    card_size = ImageSpecField(
+        source='image',
+        processors=[ResizeToFill(300, 200)],
+        format='JPEG',
+        options={'quality': 85}
+    )
+    
+    modal_size = ImageSpecField(
+        source='image',
+        processors=[ResizeToFill(600, 400)],
+        format='JPEG',
+        options={'quality': 90}
+    )
 
     class Meta:
         ordering = ["created_at"]
@@ -48,7 +72,6 @@ class PricingTier(models.Model):
 
     class Meta:
         ordering = ["duration_unit", "base_price"]
-        unique_together = ["product", "duration_unit"]
         verbose_name = _("Pricing Tier")
         verbose_name_plural = _("Pricing Tiers")
         constraints = [
@@ -112,7 +135,7 @@ class Product(models.Model):
     security_deposit = models.PositiveIntegerField(
         null=True, blank=True, help_text=_("Security deposit amount (optional)")
     )
-    purchase_year = models.DateField(help_text=_("Year of purchase"))
+    purchase_year = models.PositiveSmallIntegerField(help_text=_("Year product was purchased (YYYY)"))
     purchase_price = models.PositiveIntegerField(help_text=_("Original purchase price"))
     ownership_history = models.CharField(
         max_length=255,
@@ -148,8 +171,10 @@ class Product(models.Model):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["status"]),
-            models.Index(fields=["category"]),
+            models.Index(fields=['status', 'created_at']),
+            models.Index(fields=['category', 'status']),
+            models.Index(fields=['location']),
+            models.Index(fields=['average_rating']),
             models.Index(fields=["product_type"]),
         ]
         verbose_name = _("Product")
@@ -167,9 +192,8 @@ class Product(models.Model):
         self.save(update_fields=["rental_count"])
 
     def update_average_rating(self, rating):
-        total_rating = models.F("average_rating") * models.F("rental_count")
-        total_rating += rating
-        self.average_rating = total_rating / (models.F("rental_count") + 1)
+        result = self.reviews.aggregate(avg=Avg("rating"))
+        self.average_rating = result["avg"]
         self.save(update_fields=["average_rating"])
 
     def get_average_rating(self):

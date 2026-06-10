@@ -42,7 +42,7 @@ class CustomSignup(Signup):
                     marketing_consent=marketing_consent,
                 )
 
-                ip_address = get_client_ip(request)
+                ip_address, _ = get_client_ip(request)
                 if ip_address is None:
                     ip_address = "0.0.0.0"
 
@@ -79,7 +79,7 @@ class CustomLogout(Logout):
         return super().get(request, format)
 
     def post(self, request, format=None):
-        response = super().get(request, format)
+        response = super().post(request, format)
 
         refresh_token = request.data.get("refresh")
         if refresh_token:
@@ -109,14 +109,6 @@ class UserProfileView(APIView):
         )
 
         if serializer.is_valid():
-            allowed_fields = ["phone_number", "profile_picture", "bio", "location"]
-            for field in allowed_fields:
-                setattr(
-                    request.user,
-                    field,
-                    serializer.validated_data.get(field, getattr(request.user, field)),
-                )
-
             serializer.save()
             cache.delete(f"user_profile_{request.user.id}")
             return Response(serializer.data)

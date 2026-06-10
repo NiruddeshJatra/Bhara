@@ -72,11 +72,6 @@ class ProfileCompletionSerializer(serializers.ModelSerializer):
     def validate(self, data):
         return validate_profile_completion_data(data)
 
-    def update(self, instance, validate_data):
-        for attr, value in validate_data.items():
-            setattr(instance, attr, value)
-
+    def update(self, instance, validated_data):
         instance.profile_completed = True
-        instance.save()
-
-        return instance
+        return super().update(instance, validated_data)

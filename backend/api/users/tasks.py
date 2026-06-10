@@ -1,6 +1,5 @@
 from celery import shared_task
 from authemail.models import SignupCode, PasswordResetCode
-from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
